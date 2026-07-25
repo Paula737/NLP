@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Paula Hanna — Ask the CV</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #10142A;
+    --bg-grid-dot: rgba(226, 232, 245, 0.06);
+    --panel: #EDF0F5;
+    --panel-2: #FFFFFF;
+    --ink: #10142A;
+    --muted: #63697E;
+    --line: #D7DCE6;
+    --line-dark: #2A3055;
+    --teal: #21B8A6;
+    --teal-deep: #158C7D;
+    --amber: #F2A93B;
+    --danger: #E2634F;
+    --radius: 14px;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-data: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    background-image: radial-gradient(var(--bg-grid-dot) 1px, transparent 1px);
+    background-size: 22px 22px;
+    font-family: var(--font-body);
+    color: var(--ink);
+  }
+
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px;
+    min-height: 100vh;
+  }
+
+  a { color: inherit; }
+
+  :focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+  }
+
+  .app {
+    width: 100%;
+    max-width: 1080px;
+    background: var(--panel);
+    border: 1px solid var(--line-dark);
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 40px 80px -30px rgba(0,0,0,0.55);
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 640px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: rise 0.5s ease-out forwards;
+  }
+
+  @keyframes rise {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------------- Header (spans full width, via grid placement) ---------------- */
+  .topbar {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    background: var(--ink);
+    color: #F2F3F7;
+    border-bottom: 1px solid var(--line-dark);
+  }
+
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .wordmark .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--teal);
+    box-shadow: 0 0 0 4px rgba(33,184,166,0.18);
+  }
+
+  .status {
+    font-family: var(--font-data);
+    font-size: 12px;
+    color: #9BA2BE;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status .led {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--muted);
+  }
+  .status.online .led { background: var(--teal); }
+  .status.offline .led { background: var(--danger); }
+
+  /* ---------------- Sidebar ---------------- */
+  .sidebar {
+    background: var(--panel-2);
+    border-right: 1px solid var(--line);
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .avatar {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--teal), var(--teal-deep));
+    color: white;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .who h1 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    margin: 12px 0 4px;
+  }
+
+  .who p {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+
+  .section-label {
+    font-family: var(--font-data);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  .chips {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .chip {
+    text-align: left;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.1s ease;
+  }
+  .chip:hover { border-color: var(--teal); }
+  .chip:active { transform: scale(0.98); }
+
+  .engine-badge {
+    margin-top: auto;
+    font-family: var(--font-data);
+    font-size: 11px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    line-height: 1.6;
+  }
+  .engine-badge b { color: var(--ink); }
+
+  /* ---------------- Chat column ---------------- */
+  .chat-col {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .stream {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .msg { display: flex; }
+  .msg.user { justify-content: flex-end; }
+  .msg.assistant { justify-content: flex-start; }
+
+  .bubble {
+    max-width: 78%;
+    padding: 12px 15px;
+    border-radius: var(--radius);
+    font-size: 14px;
+    line-height: 1.55;
+    white-space: pre-line;
+  }
+
+  .msg.user .bubble {
+    background: var(--ink);
+    color: #F2F3F7;
+    border-bottom-right-radius: 4px;
+  }
+
+  .msg.assistant .bubble {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-bottom-left-radius: 4px;
+  }
+
+  .msg.assistant .bubble.error {
+    border-color: var(--danger);
+    color: #8A2E20;
+    background: #FBEAE6;
+  }
+
+  .typing {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+  }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--muted);
+    animation: blink 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+
+  /* Evidence trail — the signature element */
+  .evidence {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .evidence-pill {
+    font-family: var(--font-data);
+    font-size: 11px;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px 10px 4px 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .evidence-pill .bar {
+    width: 26px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line);
+    overflow: hidden;
+  }
+  .evidence-pill .bar i {
+    display: block;
+    height: 100%;
+    background: var(--amber);
+  }
+
+  .evidence-pill:hover { border-color: var(--amber); }
+
+  .evidence-detail {
+    margin-top: 8px;
+    font-family: var(--font-data);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #3B4160;
+    background: #10142A0D;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+    display: none;
+  }
+  .evidence-detail.open { display: block; }
+  .evidence-detail .src-name {
+    color: var(--teal-deep);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* ---------------- Composer ---------------- */
+  .composer {
+    border-top: 1px solid var(--line);
+    background: var(--panel-2);
+    padding: 16px 20px;
+    display: flex;
+    gap: 10px;
+  }
+
+  .composer input {
+    flex: 1;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--ink);
+  }
+  .composer input::placeholder { color: var(--muted); }
+  .composer input:disabled { opacity: 0.6; }
+
+  .composer button {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 14px;
+    background: var(--teal);
+    color: #071A17;
+    border: none;
+    border-radius: 10px;
+    padding: 0 20px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .composer button:hover:not(:disabled) { background: var(--teal-deep); color: white; }
+  .composer button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .banner {
+    grid-column: 1 / -1;
+    background: #3A2A16;
+    color: #F2C98B;
+    font-family: var(--font-data);
+    font-size: 12px;
+    padding: 8px 22px;
+    display: none;
+  }
+  .banner.show { display: block; }
+
+  @media (max-width: 720px) {
+    body { padding: 0; }
+    .app { grid-template-columns: 1fr; border-radius: 0; min-height: 100vh; }
+    .sidebar {
+      border-right: none;
+      border-bottom: 1px solid var(--line);
+      flex-direction: row;
+      align-items: center;
+      overflow-x: auto;
+      gap: 14px;
+    }
+    .who, .section-label, .engine-badge { display: none; }
+    .chips { flex-direction: row; }
+    .avatar { flex: 0 0 auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app { animation: none; opacity: 1; transform: none; }
+    .typing span { animation: none; opacity: 0.6; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="app" id="app">
+    <div class="topbar">
+      <div class="wordmark"><span class="dot"></span>PAULA · ASK-THE-CV</div>
+      <div class="status offline" id="status"><span class="led"></span><span id="statusText">checking backend…</span></div>
+    </div>
+
+    <div class="banner" id="banner">
+      Backend unreachable. Start it with <code>uvicorn api:app --reload</code>, then reload this page.
+    </div>
+
+    <aside class="sidebar">
+      <div>
+        <div class="avatar">PH</div>
+        <div class="who">
+          <h1>Paula Hanna</h1>
+          <p>Computer Engineering student — Machine Learning, Computer Vision &amp; applied AI systems.</p>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Quick asks</div>
+        <div class="chips">
+          <button class="chip" data-q="What is Paula's GPA and university?">GPA &amp; university</button>
+          <button class="chip" data-q="What internships has Paula done?">Internships</button>
+          <button class="chip" data-q="What programming languages does he know?">Programming languages</button>
+          <button class="chip" data-q="What projects has he worked on?">Projects</button>
+        </div>
+      </div>
+
+      <div class="engine-badge">
+        <div><b>Retrieval:</b> FAISS + MiniLM</div>
+        <div><b>Generation:</b> flan-t5-large</div>
+        <div>Running fully local — no API key</div>
+      </div>
+    </aside>
+
+    <section class="chat-col">
+      <div class="stream" id="stream">
+        <div class="msg assistant">
+          <div class="bubble">
+            Ask me anything about Paula — internships, GPA, skills, or projects.
+            Every answer is grounded in his CV; the evidence pills below each answer
+            show exactly which passages it came from.
+          </div>
+        </div>
+      </div>
+
+      <form class="composer" id="composer">
+        <input
+          id="questionInput"
+          type="text"
+          placeholder="Ask a question about Paula…"
+          autocomplete="off"
+        />
+        <button type="submit" id="askBtn">Ask</button>
+      </form>
+    </section>
+  </div>
+
+<script>
+  const API_ASK = '/ask';
+  const API_HEALTH = '/health';
+
+  const stream = document.getElementById('stream');
+  const form = document.getElementById('composer');
+  const input = document.getElementById('questionInput');
+  const askBtn = document.getElementById('askBtn');
+  const statusEl = document.getElementById('status');
+  const statusText = document.getElementById('statusText');
+  const banner = document.getElementById('banner');
+
+  function scrollToBottom() {
+    stream.scrollTop = stream.scrollHeight;
+  }
+
+  function addUserMessage(text) {
+    const row = document.createElement('div');
+    row.className = 'msg user';
+    row.innerHTML = `<div class="bubble"></div>`;
+    row.querySelector('.bubble').textContent = text;
+    stream.appendChild(row);
+    scrollToBottom();
+  }
+
+  function addTypingMessage() {
+    const row = document.createElement('div');
+    row.className = 'msg assistant';
+    row.id = 'typingRow';
+    row.innerHTML = `<div class="bubble"><span class="typing"><span></span><span></span><span></span></span></div>`;
+    stream.appendChild(row);
+    scrollToBottom();
+    return row;
+  }
+
+  function scoreToPercent(score) {
+    // scores from this embedding model typically land ~0.1–0.6; clamp for a readable bar
+    const clamped = Math.max(0, Math.min(score / 0.6, 1));
+    return Math.round(clamped * 100);
+  }
+
+  function renderAnswer(row, data) {
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = data.answer;
+
+    if (data.sources && data.sources.length) {
+      const evidence = document.createElement('div');
+      evidence.className = 'evidence';
+
+      data.sources.forEach((src, i) => {
+        const pill = document.createElement('div');
+        pill.className = 'evidence-pill';
+        pill.innerHTML = `SRC ${i + 1} · ${src.score.toFixed(2)} <span class="bar"><i style="width:${scoreToPercent(src.score)}%"></i></span>`;
+
+        const detail = document.createElement('div');
+        detail.className = 'evidence-detail';
+        detail.innerHTML = `<span class="src-name">${src.source}</span>${src.text}`;
+
+        pill.addEventListener('click', () => detail.classList.toggle('open'));
+
+        bubble.appendChild(document.createElement('br'));
+        evidence.appendChild(pill);
+        bubble.after(detail);
+      });
+
+      bubble.appendChild(evidence);
+    }
+
+    row.innerHTML = '';
+    row.appendChild(bubble);
+  }
+
+  function renderError(row, message) {
+    row.innerHTML = `<div class="bubble error">${message}</div>`;
+  }
+
+  async function ask(question) {
+    if (!question.trim()) return;
+    addUserMessage(question);
+    input.value = '';
+    input.disabled = true;
+    askBtn.disabled = true;
+
+    const typingRow = addTypingMessage();
+
+    try {
+      const res = await fetch(API_ASK, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question, top_k: 4 }),
+      });
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.detail || `Request failed (${res.status})`);
+      }
+
+      const data = await res.json();
+      renderAnswer(typingRow, data);
+    } catch (err) {
+      renderError(typingRow, `Couldn't get an answer: ${err.message}`);
+    } finally {
+      input.disabled = false;
+      askBtn.disabled = false;
+      input.focus();
+      scrollToBottom();
+    }
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    ask(input.value);
+  });
+
+  document.querySelectorAll('.chip').forEach((chip) => {
+    chip.addEventListener('click', () => ask(chip.dataset.q));
+  });
+
+  async function checkHealth() {
+    try {
+      const res = await fetch(API_HEALTH);
+      if (!res.ok) throw new Error();
+      statusEl.classList.remove('offline');
+      statusEl.classList.add('online');
+      statusText.textContent = 'online';
+      banner.classList.remove('show');
+    } catch {
+      statusEl.classList.remove('online');
+      statusEl.classList.add('offline');
+      statusText.textContent = 'offline';
+      banner.classList.add('show');
+    }
+  }
+
+  checkHealth();
+</script>
+</body>
+</html>
