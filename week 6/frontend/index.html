@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>RAG Intelligence Platform</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg: #09090b;
+      --card: rgba(24, 24, 27, 0.75);
+      --card-hover: rgba(39, 39, 42, 0.9);
+
+      --border: rgba(255, 255, 255, 0.08);
+
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+
+      --primary: #8b5cf6;
+      --primary-light: #a78bfa;
+
+      --blue: #38bdf8;
+      --green: #22c55e;
+      --red: #ef4444;
+
+      --radius: 20px;
+    }
+
+    body {
+      font-family: "Inter", sans-serif;
+      min-height: 100vh;
+      background:
+        radial-gradient(
+          circle at 10% 10%,
+          rgba(139, 92, 246, 0.18),
+          transparent 30%
+        ),
+        radial-gradient(
+          circle at 90% 20%,
+          rgba(56, 189, 248, 0.12),
+          transparent 30%
+        ),
+        #09090b;
+
+      color: var(--text);
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: auto;
+    }
+
+    /* HEADER */
+
+    .hero {
+      text-align: center;
+      margin-bottom: 45px;
+    }
+
+    .logo {
+      width: 58px;
+      height: 58px;
+
+      margin: auto auto 18px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      border-radius: 18px;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--primary),
+          var(--blue)
+        );
+
+      font-size: 26px;
+
+      box-shadow:
+        0 10px 40px rgba(139, 92, 246, 0.4);
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 800;
+
+      letter-spacing: -1.5px;
+
+      margin-bottom: 12px;
+
+      background:
+        linear-gradient(
+          90deg,
+          #ffffff,
+          #c4b5fd,
+          #7dd3fc
+        );
+
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 1rem;
+      max-width: 600px;
+      margin: auto;
+      line-height: 1.7;
+    }
+
+    /* GRID */
+
+    .grid {
+      display: grid;
+
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+      gap: 20px;
+    }
+
+    @media (max-width: 800px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* CARD */
+
+    .card {
+      position: relative;
+
+      background: var(--card);
+
+      border: 1px solid var(--border);
+
+      border-radius: var(--radius);
+
+      padding: 26px;
+
+      backdrop-filter: blur(16px);
+
+      transition:
+        transform 0.25s ease,
+        border 0.25s ease,
+        background 0.25s ease;
+
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+
+      border-color:
+        rgba(139, 92, 246, 0.35);
+
+      background: var(--card-hover);
+    }
+
+    .card.large {
+      grid-column: span 2;
+    }
+
+    @media (max-width: 800px) {
+      .card.large {
+        grid-column: span 1;
+      }
+    }
+
+    /* CARD HEADER */
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      margin-bottom: 22px;
+    }
+
+    .step {
+      width: 34px;
+      height: 34px;
+
+      border-radius: 10px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      font-size: 0.85rem;
+      font-weight: 700;
+
+      background:
+        rgba(139, 92, 246, 0.15);
+
+      color: var(--primary-light);
+
+      border:
+        1px solid
+        rgba(139, 92, 246, 0.3);
+    }
+
+    h2 {
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .description {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 4px;
+    }
+
+    /* INPUTS */
+
+    input,
+    textarea {
+      width: 100%;
+
+      background:
+        rgba(0, 0, 0, 0.25);
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+
+      color: white;
+
+      border-radius: 12px;
+
+      padding: 13px 14px;
+
+      font-family: inherit;
+
+      transition: 0.2s;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+
+      border-color:
+        rgba(139, 92, 246, 0.8);
+
+      box-shadow:
+        0 0 0 4px
+        rgba(139, 92, 246, 0.1);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: #71717a;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+      line-height: 1.6;
+    }
+
+    /* FILE UPLOAD */
+
+    .upload-zone {
+      position: relative;
+
+      border:
+        1.5px dashed
+        rgba(139, 92, 246, 0.4);
+
+      border-radius: 16px;
+
+      padding: 30px 20px;
+
+      text-align: center;
+
+      cursor: pointer;
+
+      background:
+        rgba(139, 92, 246, 0.04);
+
+      transition: 0.25s;
+    }
+
+    .upload-zone:hover {
+      background:
+        rgba(139, 92, 246, 0.08);
+
+      border-color:
+        var(--primary);
+    }
+
+    .upload-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+    }
+
+    .upload-title {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .upload-text {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    #fileInput {
+      position: absolute;
+
+      inset: 0;
+
+      opacity: 0;
+
+      cursor: pointer;
+    }
+
+    /* SOURCE INPUT */
+
+    .source-group {
+      margin-top: 20px;
+    }
+
+    .source-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      font-size: 0.85rem;
+      font-weight: 600;
+
+      margin-bottom: 9px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .input-row input {
+      flex: 1;
+    }
+
+    /* BUTTON */
+
+    button {
+      border: none;
+
+      border-radius: 11px;
+
+      padding: 12px 18px;
+
+      color: white;
+
+      font-family: inherit;
+      font-weight: 600;
+
+      cursor: pointer;
+
+      transition:
+        transform 0.2s,
+        box-shadow 0.2s,
+        opacity 0.2s;
+
+      background:
+        linear-gradient(
+          135deg,
+          var(--primary),
+          #6366f1
+        );
+
+      box-shadow:
+        0 6px 22px
+        rgba(139, 92, 246, 0.25);
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+
+      box-shadow:
+        0 10px 30px
+        rgba(139, 92, 246, 0.4);
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    button.secondary {
+      background:
+        rgba(255, 255, 255, 0.07);
+
+      box-shadow: none;
+
+      border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
+    }
+
+    /* STATUS */
+
+    .status {
+      margin-top: 12px;
+
+      font-size: 0.82rem;
+
+      color: var(--muted);
+
+      white-space: pre-wrap;
+    }
+
+    .status.loading {
+      color: var(--primary-light);
+    }
+
+    /* ASK BUTTON */
+
+    .ask-button {
+      width: 100%;
+
+      margin-top: 15px;
+
+      padding: 15px;
+
+      font-size: 1rem;
+
+      background:
+        linear-gradient(
+          135deg,
+          #8b5cf6,
+          #3b82f6
+        );
+    }
+
+    /* AI LOOP */
+
+    .ai-loop {
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      gap: 12px;
+
+      margin-top: 18px;
+
+      color: var(--muted);
+
+      font-size: 0.8rem;
+    }
+
+    .agent {
+      padding: 7px 12px;
+
+      border-radius: 999px;
+
+      background:
+        rgba(255,255,255,0.05);
+
+      border:
+        1px solid
+        rgba(255,255,255,0.08);
+    }
+
+    .arrow {
+      color: var(--primary-light);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        opacity: 0.4;
+      }
+
+      50% {
+        opacity: 1;
+      }
+    }
+
+    /* RESULT */
+
+    #result {
+      margin-top: 25px;
+    }
+
+    .answer {
+      border-radius: 16px;
+
+      padding: 22px;
+
+      background:
+        linear-gradient(
+          135deg,
+          rgba(139, 92, 246, 0.08),
+          rgba(56, 189, 248, 0.05)
+        );
+
+      border:
+        1px solid
+        rgba(139, 92, 246, 0.2);
+
+      line-height: 1.7;
+
+      animation: appear 0.4s ease;
+    }
+
+    .answer-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      font-weight: 700;
+
+      margin-bottom: 12px;
+
+      color: var(--primary-light);
+    }
+
+    @keyframes appear {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* LOOP HISTORY */
+
+    .history-title {
+      margin-top: 24px;
+      margin-bottom: 12px;
+
+      font-size: 0.95rem;
+    }
+
+    .loop {
+      padding: 14px;
+
+      margin-bottom: 10px;
+
+      border-radius: 12px;
+
+      background:
+        rgba(255,255,255,0.03);
+
+      border-left:
+        3px solid
+        var(--primary);
+
+      font-size: 0.85rem;
+
+      color: var(--muted);
+    }
+
+    .loop-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+
+      margin-bottom: 7px;
+
+      color: white;
+    }
+
+    .badge {
+      padding: 4px 9px;
+
+      border-radius: 999px;
+
+      font-size: 0.7rem;
+
+      font-weight: 700;
+    }
+
+    .accept {
+      background:
+        rgba(34, 197, 94, 0.15);
+
+      color:
+        #4ade80;
+    }
+
+    .revise {
+      background:
+        rgba(239, 68, 68, 0.15);
+
+      color:
+        #f87171;
+    }
+
+    .empty {
+      text-align: center;
+
+      color: var(--muted);
+
+      padding: 15px;
+
+      font-size: 0.85rem;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <!-- HERO -->
+
+    <div class="hero">
+
+      <div class="logo">
+        ✦
+      </div>
+
+      <h1>RAG Intelligence Platform</h1>
+
+      <p class="subtitle">
+        Build your knowledge base, retrieve relevant information,
+        and generate answers refined through an intelligent
+        Generator ↔ Evaluator loop.
+      </p>
+
+    </div>
+
+
+    <div class="grid">
+
+
+      <!-- KNOWLEDGE -->
+
+      <div class="card">
+
+        <div class="card-header">
+
+          <div class="step">01</div>
+
+          <div>
+            <h2>Add Knowledge</h2>
+
+            <div class="description">
+              Upload documents or connect external knowledge.
+            </div>
+          </div>
+
+        </div>
+
+
+        <!-- FILE -->
+
+        <div class="upload-zone">
+
+          <input type="file" id="fileInput">
+
+          <div class="upload-icon">
+            📂
+          </div>
+
+          <div class="upload-title">
+            Drop your file here
+          </div>
+
+          <div class="upload-text">
+            PDF · DOCX · TXT · Code · PPTX · WAV
+          </div>
+
+        </div>
+
+        <button
+          style="width:100%; margin-top:12px;"
+          onclick="uploadFile()"
+        >
+          Upload & Process
+        </button>
+
+        <div
+          class="status"
+          id="fileStatus"
+        ></div>
+
+
+        <!-- URL -->
+
+        <div class="source-group">
+
+          <div class="source-label">
+            🔗 Website
+          </div>
+
+          <div class="input-row">
+
+            <input
+              type="text"
+              id="urlInput"
+              placeholder="https://example.com/article"
+            >
+
+            <button
+              class="secondary"
+              onclick="uploadUrl()"
+            >
+              Add
+            </button>
+
+          </div>
+
+          <div
+            class="status"
+            id="urlStatus"
+          ></div>
+
+        </div>
+
+
+        <!-- WIKIPEDIA -->
+
+        <div class="source-group">
+
+          <div class="source-label">
+            📚 Wikipedia
+          </div>
+
+          <div class="input-row">
+
+            <input
+              type="text"
+              id="wikiInput"
+              placeholder="e.g. Large language model"
+            >
+
+            <button
+              class="secondary"
+              onclick="uploadWiki()"
+            >
+              Add
+            </button>
+
+          </div>
+
+          <div
+            class="status"
+            id="wikiStatus"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- QUESTION -->
+
+      <div class="card">
+
+        <div class="card-header">
+
+          <div class="step">02</div>
+
+          <div>
+            <h2>Ask Your Knowledge Base</h2>
+
+            <div class="description">
+              The AI retrieves, generates, evaluates, and improves.
+            </div>
+          </div>
+
+        </div>
+
+
+        <textarea
+          id="question"
+          placeholder="Ask anything about your ingested knowledge..."
+        ></textarea>
+
+
+        <button
+          class="ask-button"
+          onclick="ask()"
+        >
+          ✦ Generate Answer
+        </button>
+
+
+        <div class="ai-loop">
+
+          <div class="agent">
+            🧠 Generator
+          </div>
+
+          <div class="arrow">
+            ⇄
+          </div>
+
+          <div class="agent">
+            🔍 Evaluator
+          </div>
+
+        </div>
+
+
+        <div
+          class="status"
+          id="askStatus"
+        ></div>
+
+      </div>
+
+
+      <!-- RESULT -->
+
+      <div class="card large">
+
+        <div class="card-header">
+
+          <div class="step">03</div>
+
+          <div>
+            <h2>AI Response</h2>
+
+            <div class="description">
+              Final answer generated from your knowledge base.
+            </div>
+          </div>
+
+        </div>
+
+        <div
+          id="result"
+          class="empty"
+        >
+          Your generated answer will appear here.
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    const sessionId =
+      "session-" +
+      Math.random()
+        .toString(36)
+        .slice(2);
+
+
+    /* ---------------- FILE UPLOAD ---------------- */
+
+    async function uploadFile() {
+
+      const input =
+        document.getElementById("fileInput");
+
+      if (!input.files.length) return;
+
+      const fd = new FormData();
+
+      fd.append(
+        "file",
+        input.files[0]
+      );
+
+      const status =
+        document.getElementById(
+          "fileStatus"
+        );
+
+      status.classList.add("loading");
+
+      status.textContent =
+        "⏳ Uploading and processing document...";
+
+      try {
+
+        const res =
+          await fetch(
+            "/ingest/file",
+            {
+              method: "POST",
+              body: fd
+            }
+          );
+
+        const data =
+          await res.json();
+
+        status.classList.remove("loading");
+
+        status.textContent =
+          "✓ File successfully added to the knowledge base";
+
+      }
+
+      catch (error) {
+
+        status.classList.remove("loading");
+
+        status.textContent =
+          "✕ Upload failed. Please try again.";
+
+      }
+
+    }
+
+
+    /* ---------------- URL INGEST ---------------- */
+
+    async function uploadUrl() {
+
+      const url =
+        document.getElementById(
+          "urlInput"
+        ).value;
+
+      if (!url) return;
+
+      const status =
+        document.getElementById(
+          "urlStatus"
+        );
+
+      status.classList.add("loading");
+
+      status.textContent =
+        "⏳ Reading website...";
+
+      try {
+
+        const res =
+          await fetch(
+            "/ingest/url",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify({
+                  url
+                })
+            }
+          );
+
+        const data =
+          await res.json();
+
+        status.classList.remove("loading");
+
+        status.textContent =
+          "✓ Website added successfully";
+
+      }
+
+      catch (error) {
+
+        status.classList.remove("loading");
+
+        status.textContent =
+          "✕ Failed to ingest website.";
+
+      }
+
+    }
+
+
+    /* ---------------- WIKIPEDIA ---------------- */
+
+    async function uploadWiki() {
+
+      const topic =
+        document.getElementById(
+          "wikiInput"
+        ).value;
+
+      if (!topic) return;
+
+      const status =
+        document.getElementById(
+          "wikiStatus"
+        );
+
+      status.classList.add("loading");
+
+      status.textContent =
+        "⏳ Searching Wikipedia...";
+
+      try {
+
+        const res =
+          await fetch(
+            "/ingest/wikipedia",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify({
+                  topic
+                })
+            }
+          );
+
+        const data =
+          await res.json();
+
+        status.classList.remove("loading");
+
+        status.textContent =
+          "✓ Wikipedia knowledge added";
+
+      }
+
+      catch (error) {
+
+        status.classList.remove("loading");
+
+        status.textContent =
+          "✕ Could not retrieve Wikipedia page.";
+
+      }
+
+    }
+
+
+    /* ---------------- ASK ---------------- */
+
+    async function ask() {
+
+      const question =
+        document.getElementById(
+          "question"
+        ).value;
+
+      if (!question) return;
+
+
+      const status =
+        document.getElementById(
+          "askStatus"
+        );
+
+      const result =
+        document.getElementById(
+          "result"
+        );
+
+
+      status.classList.add("loading");
+
+      status.textContent =
+        "✦ Generator is creating a response...\n" +
+        "↔ Evaluator is reviewing the answer...";
+
+
+      result.innerHTML = "";
+
+
+      try {
+
+        const res =
+          await fetch(
+            "/ask",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json"
+              },
+
+              body:
+                JSON.stringify({
+
+                  session_id:
+                    sessionId,
+
+                  question:
+                    question
+
+                })
+
+            }
+          );
+
+
+        const data =
+          await res.json();
+
+
+        status.classList.remove("loading");
+
+        status.textContent =
+          `✓ ${data.status || "Completed"} • ` +
+          `${data.loops_used || 0} evaluation loops used`;
+
+
+        let html = `
+
+          <div class="answer">
+
+            <div class="answer-title">
+              ✦ Final Answer
+            </div>
+
+            <div>
+              ${escapeHtml(
+                data.final_answer || ""
+              )}
+            </div>
+
+          </div>
+
+        `;
+
+
+        if (
+          data.history &&
+          data.history.length
+        ) {
+
+          html +=
+            `<div class="history-title">
+              Evaluation History
+            </div>`;
+
+
+          for (
+            const h of data.history
+          ) {
+
+            const cls =
+              h.decision === "accept"
+                ? "accept"
+                : "revise";
+
+
+            html += `
+
+              <div class="loop">
+
+                <div class="loop-header">
+
+                  <div>
+                    Loop ${h.loop}
+                  </div>
+
+                  <div>
+                    <span
+                      class="badge ${cls}"
+                    >
+                      ${escapeHtml(
+                        h.decision
+                      )}
+                    </span>
+
+                    Score:
+                    ${escapeHtml(
+                      String(h.score)
+                    )}
+                  </div>
+
+                </div>
+
+                ${escapeHtml(
+                  h.feedback || ""
+                )}
+
+              </div>
+
+            `;
+
+          }
+
+        }
+
+
+        result.innerHTML = html;
+
+      }
+
+
+      catch (error) {
+
+        status.classList.remove("loading");
+
+        status.textContent =
+          "✕ Something went wrong while generating the answer.";
+
+      }
+
+    }
+
+
+    /* ---------------- SECURITY ---------------- */
+
+    function escapeHtml(text) {
+
+      return String(text)
+
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+
+        .replace(
+          /</g,
+          "&lt;"
+        )
+
+        .replace(
+          />/g,
+          "&gt;"
+        )
+
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+  </script>
+
+</body>
+</html>
