@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agentic RAG · Cellula NLP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+<style>
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    animation: slideIn .3s ease both;
+  }
+  .doc-item .tab {
+    width: 6px; height: 6px; border-radius: 2px;
+    background: var(--amber);
+    flex-shrink: 0;
+  }
+  .doc-item span.name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .doc-item .doc-delete {
+    background: none;
+    border: none;
+    color: var(--text-faint);
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 4px;
+    line-height: 1;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .doc-item .doc-delete:hover { color: var(--rose); background: var(--rose-dim); }
+
+  .clear-all-btn {
+    width: 100%;
+    margin-top: 10px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-faint);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    padding: 7px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .clear-all-btn:hover { border-color: var(--rose); color: var(--rose); }
+
+  .scope-select {
+    width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    padding: 9px 10px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+  }
+  .scope-select:focus { border-color: var(--teal); outline: none; }
+  :root {
+    --bg: #0D1420;
+    --bg-glow: radial-gradient(ellipse 900px 500px at 50% -10%, rgba(79,191,174,0.10), transparent 60%);
+    --surface: #141E2E;
+    --surface-2: #1B283C;
+    --surface-3: #22314A;
+    --border: #26344A;
+    --text: #E9EEF5;
+    --text-muted: #8FA0B7;
+    --text-faint: #5C6E85;
+    --amber: #E3A542;
+    --amber-dim: rgba(227,165,66,0.14);
+    --teal: #4FBFAE;
+    --teal-dim: rgba(79,191,174,0.14);
+    --rose: #DD6B7C;
+    --rose-dim: rgba(221,107,124,0.14);
+    --radius: 14px;
+    --radius-sm: 9px;
+    --shadow: 0 8px 30px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: var(--bg);
+    background-image: var(--bg-glow);
+    background-repeat: no-repeat;
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: inherit; }
+
+  ::selection { background: var(--amber-dim); }
+
+  :focus-visible {
+    outline: 2px solid var(--teal);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .app {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    height: 100vh;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+
+  /* ---------------- SIDEBAR ---------------- */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    padding: 28px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    overflow-y: auto;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 4px;
+  }
+
+  .brand .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--teal);
+  }
+
+  .brand h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 500;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: 2px;
+  }
+
+  .dropzone {
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    padding: 18px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease;
+    background: var(--surface);
+  }
+  .dropzone:hover, .dropzone.dragover {
+    border-color: var(--teal);
+    background: var(--teal-dim);
+  }
+  .dropzone p {
+    margin: 6px 0 0;
+    font-size: 12.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .dropzone .icon { font-size: 20px; opacity: .8; }
+  .dropzone input { display: none; }
+
+  .doc-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .doc-item {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 11px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+    animation: slideIn .3s ease both;
+  }
+  .doc-item .tab {
+    width: 6px; height: 6px; border-radius: 2px;
+    background: var(--amber);
+    flex-shrink: 0;
+  }
+  .doc-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .doc-empty {
+    font-size: 12.5px;
+    color: var(--text-faint);
+    line-height: 1.6;
+    padding: 4px 2px;
+  }
+
+  .upload-status {
+    font-size: 12px;
+    color: var(--teal);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 16px;
+  }
+  .upload-status.error { color: var(--rose); }
+
+  /* ---------------- MAIN ---------------- */
+  .main {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .topbar {
+    padding: 24px 32px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .topbar .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-faint);
+  }
+  .topbar h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 20px;
+    margin: 3px 0 0;
+  }
+
+  /* ---------------- PIPELINE STRIP ---------------- */
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(255,255,255,0.015), transparent);
+  }
+
+  .p-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    min-width: 92px;
+  }
+
+  .p-dot {
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    background: var(--surface-3);
+    border: 2px solid var(--border);
+    transition: all .3s ease;
+  }
+  .p-node.active .p-dot {
+    background: var(--teal);
+    border-color: var(--teal);
+    box-shadow: 0 0 0 5px var(--teal-dim);
+  }
+  .p-node.done .p-dot {
+    background: var(--teal);
+    border-color: var(--teal);
+  }
+  .p-node.error .p-dot {
+    background: var(--rose);
+    border-color: var(--rose);
+    box-shadow: 0 0 0 5px var(--rose-dim);
+  }
+
+  .p-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.03em;
+    color: var(--text-faint);
+    transition: color .3s ease;
+  }
+  .p-node.active .p-label, .p-node.done .p-label { color: var(--text); }
+
+  .p-sub {
+    font-size: 10.5px;
+    color: var(--text-faint);
+    height: 13px;
+  }
+
+  .p-line {
+    flex: 1;
+    height: 2px;
+    background: var(--border);
+    margin: 0 -6px;
+    position: relative;
+    top: -19px;
+    transition: background .3s ease;
+  }
+  .p-line.filled { background: var(--teal); }
+
+  .loop-badge {
+    display: none;
+    align-items: center;
+    gap: 4px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10.5px;
+    color: var(--amber);
+    background: var(--amber-dim);
+    border-radius: 20px;
+    padding: 2px 8px;
+    margin-top: 2px;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+  .loop-badge.show { display: inline-flex; }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: .55; }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ---------------- CHAT ---------------- */
+  .chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .empty-state {
+    margin: auto;
+    text-align: center;
+    max-width: 440px;
+    color: var(--text-muted);
+  }
+  .empty-state h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 19px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .empty-state p { font-size: 13.5px; line-height: 1.6; margin-bottom: 18px; }
+  .example-chip {
+    display: inline-block;
+    font-size: 12.5px;
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 7px 14px;
+    margin: 3px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .example-chip:hover { border-color: var(--teal); color: var(--text); }
+
+  .msg { display: flex; animation: slideIn .25s ease both; }
+  .msg.user { justify-content: flex-end; }
+  .msg.assistant { justify-content: flex-start; }
+
+  .bubble-user {
+    background: var(--amber-dim);
+    border: 1px solid rgba(227,165,66,0.3);
+    border-radius: var(--radius) var(--radius) 4px var(--radius);
+    padding: 12px 16px;
+    max-width: 72%;
+    font-size: 14.5px;
+    line-height: 1.55;
+  }
+
+  .card-assistant {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px var(--radius) var(--radius) var(--radius);
+    padding: 18px 20px;
+    max-width: 84%;
+    box-shadow: var(--shadow);
+  }
+
+  .card-assistant.system-error {
+    border-color: rgba(221,107,124,0.4);
+    background: var(--rose-dim);
+  }
+
+  .card-assistant p { margin: 0 0 10px; font-size: 14.5px; line-height: 1.65; }
+  .card-assistant p:last-child { margin-bottom: 0; }
+  .card-assistant strong { color: var(--text); }
+  .card-assistant table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+    font-size: 13.5px;
+  }
+  .card-assistant th, .card-assistant td {
+    border: 1px solid var(--border);
+    padding: 7px 10px;
+    text-align: left;
+  }
+  .card-assistant th {
+    background: var(--surface-2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .card-assistant ul, .card-assistant ol { padding-left: 20px; font-size: 14.5px; line-height: 1.6; }
+
+  cite {
+    font-style: normal;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11.5px;
+    background: var(--amber-dim);
+    color: var(--amber);
+    border-radius: 5px;
+    padding: 1.5px 6px;
+    white-space: nowrap;
+  }
+
+  .sources-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .source-chip {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 9px;
+  }
+  .report-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color .15s ease, color .15s ease;
+}
+.report-btn:hover:not(:disabled) { border-color: var(--amber); color: var(--amber); }
+.report-btn:disabled { opacity: .6; cursor: default; }
+
+  .thinking {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--text-faint);
+    padding: 4px 2px;
+  }
+  .thinking .dots span {
+    display: inline-block;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: var(--teal);
+    margin-right: 3px;
+    animation: blink 1.2s infinite ease-in-out;
+  }
+  .thinking .dots span:nth-child(2) { animation-delay: .2s; }
+  .thinking .dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .2; } 40% { opacity: 1; } }
+
+  /* ---------------- INPUT BAR ---------------- */
+  .input-bar {
+    display: flex;
+    gap: 10px;
+    padding: 16px 32px 22px;
+    border-top: 1px solid var(--border);
+  }
+  .input-bar textarea {
+    flex: 1;
+    resize: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    padding: 12px 14px;
+    line-height: 1.5;
+    max-height: 120px;
+  }
+  .input-bar textarea::placeholder { color: var(--text-faint); }
+  .input-bar textarea:focus { border-color: var(--teal); outline: none; }
+
+  .send-btn {
+    background: var(--teal);
+    color: #0D1420;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0 22px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity .15s ease, transform .1s ease;
+  }
+  .send-btn:hover:not(:disabled) { opacity: .88; }
+  .send-btn:active:not(:disabled) { transform: scale(.97); }
+  .send-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+  .mic-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: var(--radius-sm);
+    width: 46px;
+    flex-shrink: 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .mic-btn:hover:not(:disabled) { border-color: var(--teal); color: var(--teal); }
+  .mic-btn:disabled { opacity: .35; cursor: not-allowed; }
+  .mic-btn.recording {
+    background: var(--rose-dim);
+    border-color: var(--rose);
+    color: var(--rose);
+    animation: micPulse 1.2s ease-in-out infinite;
+  }
+  .mic-btn.transcribing {
+    color: var(--amber);
+    border-color: var(--amber);
+  }
+  @keyframes micPulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--rose-dim); }
+    50% { box-shadow: 0 0 0 6px transparent; }
+  }
+  /* scrollbars */
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 8px; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  @media (max-width: 780px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="eyebrow">Eng.Paula Hanna</span>
+      <h1>Agentic RAG</h1>
+    </div>
+
+    <div>
+      <div class="section-label">Add documents</div>
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload documents">
+      <div class="icon">&#128196;</div>
+      <p><strong>Drop files</strong> or click to browse<br>PDF, DOCX, TXT, or images (OCR)</p>
+      <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt,.png,.jpg,.jpeg,.bmp,.tiff,.webp">
+    </div>
+      <div class="upload-status" id="uploadStatus" aria-live="polite"></div>
+    </div>
+
+    <div>
+      <div class="section-label">Case files</div>
+      <div class="doc-list" id="docList">
+        <div class="doc-empty" id="docEmpty">No documents yet. Upload one above to start asking questions.</div>
+      </div>
+      <button type="button" id="clearAllBtn" class="clear-all-btn" style="display:none">Clear all documents</button>
+    </div>
+
+    <div>
+      <div class="section-label">Ask about</div>
+      <select id="scopeSelect" class="scope-select">
+        <option value="">All documents</option>
+      </select>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="eyebrow">Multi-agent · Retriever → Analyst → Answer</div>
+      <h2>Ask your documents</h2>
+    </div>
+
+    <div class="pipeline" id="pipeline" aria-live="polite">
+      <div class="p-node" data-stage="retriever">
+        <div class="p-dot"></div>
+        <div class="p-label">Retriever</div>
+        <div class="p-sub" id="sub-retriever"></div>
+      </div>
+      <div class="p-line" id="line-1"></div>
+      <div class="p-node" data-stage="analyst">
+        <div class="p-dot"></div>
+        <div class="p-label">Analyst</div>
+        <div class="p-sub" id="sub-analyst"></div>
+        <div class="loop-badge" id="loopBadge">&#8635; feedback loop</div>
+      </div>
+      <div class="p-line" id="line-2"></div>
+      <div class="p-node" data-stage="answer">
+        <div class="p-dot"></div>
+        <div class="p-label">Answer</div>
+        <div class="p-sub" id="sub-answer"></div>
+      </div>
+    </div>
+
+    <div class="chat" id="chat">
+      <div class="empty-state" id="emptyState">
+        <h3>Ready when you are</h3>
+        <p>Upload a document on the left, then ask anything about it. Every answer is grounded in exact page citations.</p>
+        <span class="example-chip" data-q="What are the main skills and qualifications listed?">Main skills &amp; qualifications</span>
+        <span class="example-chip" data-q="Summarize this document in three sentences.">Summarize in 3 sentences</span>
+      </div>
+    </div>
+
+    <form class="input-bar" id="inputForm">
+      <textarea id="questionInput" rows="1" placeholder="Ask a question about your documents…" aria-label="Question"></textarea>
+      <button type="button" id="micBtn" class="mic-btn" aria-label="Ask by voice" title="Ask by voice">
+        <svg id="micIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="23"></line>
+          <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+      </button>
+      <button type="submit" class="send-btn" id="sendBtn">Ask</button>
+    </form>
+  </main>
+
+</div>
+
+<script>
+marked.setOptions({ breaks: true });
+
+const chat = document.getElementById('chat');
+const emptyState = document.getElementById('emptyState');
+const form = document.getElementById('inputForm');
+const input = document.getElementById('questionInput');
+const sendBtn = document.getElementById('sendBtn');
+const docList = document.getElementById('docList');
+const docEmpty = document.getElementById('docEmpty');
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const uploadStatus = document.getElementById('uploadStatus');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const scopeSelect = document.getElementById('scopeSelect');
+
+let conversationContext = "";
+
+// ---------- Document list ----------
+async function refreshDocuments() {
+  try {
+    const res = await fetch('/api/documents');
+    const data = await res.json();
+    docList.querySelectorAll('.doc-item').forEach(el => el.remove());
+
+    const docs = data.documents || [];
+    const previousScope = scopeSelect.value;
+    scopeSelect.innerHTML = '<option value="">All documents</option>';
+
+    if (docs.length === 0) {
+      docEmpty.style.display = 'block';
+      clearAllBtn.style.display = 'none';
+      return;
+    }
+    docEmpty.style.display = 'none';
+    clearAllBtn.style.display = 'block';
+
+    docs.forEach(name => {
+      const item = document.createElement('div');
+      item.className = 'doc-item';
+      const isImage = /\.(png|jpe?g|bmp|tiff?|webp)$/i.test(name);
+      const tabColor = isImage ? 'style="background: var(--teal)"' : '';
+      const badge = isImage ? '<span style="font-size:9px;opacity:.7;margin-right:2px">OCR</span>' : '';
+      item.innerHTML = `<span class="tab" ${tabColor}></span><span class="name">${escapeHtml(name)}</span>${badge}<button class="doc-delete" title="Remove ${escapeHtml(name)}" aria-label="Remove ${escapeHtml(name)}">&times;</button>`;
+      item.querySelector('.doc-delete').addEventListener('click', () => deleteDocument(name));
+      docList.appendChild(item);
+
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      scopeSelect.appendChild(opt);
+    });
+
+    if (docs.includes(previousScope)) scopeSelect.value = previousScope;
+  } catch (e) {
+    // Silent fail on initial load is fine; upload errors are surfaced separately.
+  }
+}
+
+async function deleteDocument(name) {
+  try {
+    const res = await fetch(`/api/documents/${encodeURIComponent(name)}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    uploadStatus.textContent = `Removed ${name}.`;
+    uploadStatus.classList.remove('error');
+    refreshDocuments();
+  } catch (e) {
+    uploadStatus.textContent = `Couldn't remove ${name}: ${e.message}`;
+    uploadStatus.classList.add('error');
+  }
+}
+
+clearAllBtn.addEventListener('click', async () => {
+  if (!confirm('Remove all documents from the knowledge base? This cannot be undone.')) return;
+  try {
+    const res = await fetch('/api/documents', { method: 'DELETE' });
+    if (!res.ok) throw new Error(`Server returned ${res.status}`);
+    uploadStatus.textContent = 'Cleared all documents.';
+    uploadStatus.classList.remove('error');
+    refreshDocuments();
+  } catch (e) {
+    uploadStatus.textContent = `Couldn't clear: ${e.message}`;
+    uploadStatus.classList.add('error');
+  }
+});
+
+function escapeHtml(str) {
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+// ---------- Upload ----------
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+['dragover', 'dragenter'].forEach(evt =>
+  dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.add('dragover'); })
+);
+['dragleave', 'drop'].forEach(evt =>
+  dropzone.addEventListener(evt, e => { e.preventDefault(); dropzone.classList.remove('dragover'); })
+);
+dropzone.addEventListener('drop', e => uploadFiles(e.dataTransfer.files));
+fileInput.addEventListener('change', () => uploadFiles(fileInput.files));
+
+async function uploadFiles(fileList) {
+  if (!fileList || fileList.length === 0) return;
+  const formData = new FormData();
+  Array.from(fileList).forEach(f => formData.append('files', f));
+
+  uploadStatus.textContent = `Ingesting ${fileList.length} file(s)… this can take a moment.`;
+  uploadStatus.classList.remove('error');
+
+  try {
+    const res = await fetch('/api/ingest', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Ingestion failed.');
+    uploadStatus.textContent = `Added ${data.ingested.length} file(s) to the knowledge base.`;
+    refreshDocuments();
+  } catch (e) {
+    uploadStatus.textContent = `Couldn't ingest: ${e.message}`;
+    uploadStatus.classList.add('error');
+  }
+  fileInput.value = '';
+}
+
+// ---------- Pipeline visualization ----------
+const nodes = {
+  retriever: document.querySelector('[data-stage="retriever"]'),
+  analyst: document.querySelector('[data-stage="analyst"]'),
+  answer: document.querySelector('[data-stage="answer"]'),
+};
+const subEls = {
+  retriever: document.getElementById('sub-retriever'),
+  analyst: document.getElementById('sub-analyst'),
+  answer: document.getElementById('sub-answer'),
+};
+const line1 = document.getElementById('line-1');
+const line2 = document.getElementById('line-2');
+const loopBadge = document.getElementById('loopBadge');
+
+function resetPipeline() {
+  Object.values(nodes).forEach(n => n.classList.remove('active', 'done', 'error'));
+  Object.values(subEls).forEach(s => s.textContent = '');
+  line1.classList.remove('filled');
+  line2.classList.remove('filled');
+  loopBadge.classList.remove('show');
+}
+
+function handlePipelineEvent(evt) {
+  if (evt.stage === 'retriever' && evt.status === 'start') {
+    nodes.retriever.classList.add('active');
+    subEls.retriever.textContent = 'searching…';
+  }
+  if (evt.stage === 'retriever' && evt.status === 'done') {
+    nodes.retriever.classList.remove('active');
+    nodes.retriever.classList.add('done');
+    subEls.retriever.textContent = `${evt.evidence_count} chunks`;
+    line1.classList.add('filled');
+  }
+  if (evt.stage === 'analyst' && evt.status === 'start') {
+    nodes.analyst.classList.add('active');
+    subEls.analyst.textContent = 'reasoning…';
+  }
+  if (evt.stage === 'analyst' && evt.status === 'done') {
+    nodes.analyst.classList.remove('active');
+    nodes.analyst.classList.add('done');
+    subEls.analyst.textContent = `${evt.evidence_count} chunks used`;
+    if (evt.loops_used > 0) {
+      loopBadge.textContent = `↺ ${evt.loops_used} feedback loop${evt.loops_used > 1 ? 's' : ''}`;
+      loopBadge.classList.add('show');
+    }
+    line2.classList.add('filled');
+  }
+  if (evt.stage === 'answer' && evt.status === 'start') {
+    nodes.answer.classList.add('active');
+    subEls.answer.textContent = 'writing…';
+  }
+  if (evt.stage === 'answer' && evt.status === 'done') {
+    nodes.answer.classList.remove('active');
+    nodes.answer.classList.add('done');
+    subEls.answer.textContent = 'complete';
+  }
+  if (evt.stage === 'error') {
+    Object.values(nodes).forEach(n => { if (n.classList.contains('active')) n.classList.add('error'); });
+  }
+}
+
+// ---------- Chat rendering ----------
+function addUserMessage(text) {
+  emptyState.remove();
+  const wrap = document.createElement('div');
+  wrap.className = 'msg user';
+  wrap.innerHTML = `<div class="bubble-user">${escapeHtml(text)}</div>`;
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function addThinkingMessage() {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg assistant';
+  wrap.id = 'thinkingMsg';
+  wrap.innerHTML = `<div class="thinking">Working through the pipeline <span class="dots"><span></span><span></span><span></span></span></div>`;
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+  return wrap;
+}
+
+function renderCitations(markdown) {
+  return markdown.replace(
+    /\(([^()]+?\.(?:pdf|docx|txt|pptx|xlsx)),\s*p\.?\s*(\d+(?:\s*[-,]\s*\d+)*)\)/gi,
+    (_, doc, pages) => `<cite>${doc.trim()} · p.${pages}</cite>`
+  );
+}
+
+function addAssistantMessage(rawText, isError = false, question = '') {
+  const wrap = document.createElement('div');
+  wrap.className = 'msg assistant';
+
+  if (isError) {
+    wrap.innerHTML = `<div class="card-assistant system-error">${escapeHtml(rawText)}</div>`;
+    chat.appendChild(wrap);
+    chat.scrollTop = chat.scrollHeight;
+    return;
+  }
+
+  const [body, sourcesRaw] = rawText.split(/\*\*Sources\*\*/i);
+  const bodyHtml = marked.parse(renderCitations(body.trim()));
+
+  let sourcesHtml = '';
+  if (sourcesRaw) {
+    const chips = [...sourcesRaw.matchAll(/-\s*(.+?)(?:\s*\(page[s]?\s*([\d,\s]+)\))?\s*$/gim)]
+      .map(m => `<span class="source-chip">${escapeHtml(m[1].trim())}${m[2] ? ' · p.' + m[2].trim() : ''}</span>`)
+      .join('');
+    if (chips) sourcesHtml = `<div class="sources-row">${chips}</div>`;
+  }
+
+  const card = document.createElement('div');
+  card.className = 'card-assistant';
+  card.innerHTML = `${bodyHtml}${sourcesHtml}`;
+
+  const reportBtn = document.createElement('button');
+  reportBtn.type = 'button';
+  reportBtn.className = 'report-btn';
+  reportBtn.textContent = '📄 Generate PDF report';
+  reportBtn.addEventListener('click', () => generateReport(question, rawText, reportBtn));
+  card.appendChild(reportBtn);
+
+  wrap.appendChild(card);
+  chat.appendChild(wrap);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function generateReport(question, answerText, btn) {
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Generating report…';
+
+  try {
+    const res = await fetch('/api/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, answer: answerText }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Server returned ${res.status}`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'report.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    btn.textContent = originalLabel;
+  } catch (e) {
+    btn.textContent = `Failed: ${e.message}`;
+    setTimeout(() => { btn.textContent = originalLabel; }, 3000);
+  }
+  btn.disabled = false;
+}
+
+
+// ---------- Ask flow (SSE via fetch stream) ----------
+async function askQuestion(question) {
+  addUserMessage(question);
+  resetPipeline();
+  const thinkingEl = addThinkingMessage();
+  sendBtn.disabled = true;
+  input.value = '';
+
+  let finalAnswer = null;
+  let errored = false;
+
+  try {
+    const res = await fetch('/api/ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question, conversation_context: conversationContext, source_filter: scopeSelect.value }),
+    });
+    if (!res.ok || !res.body) throw new Error(`Server returned ${res.status}`);
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop();
+      for (const part of parts) {
+        const line = part.split('\n').find(l => l.startsWith('data:'));
+        if (!line) continue;
+        const json = line.replace(/^data:\s*/, '');
+        if (!json || json === '{}') continue;
+        const evt = JSON.parse(json);
+        handlePipelineEvent(evt);
+        if (evt.stage === 'answer' && evt.status === 'done') finalAnswer = evt.answer;
+        if (evt.stage === 'error') { errored = true; finalAnswer = evt.message; }
+      }
+    }
+  } catch (e) {
+    errored = true;
+    finalAnswer = `Couldn't reach the server. Make sure the API is running (uvicorn api:app --reload) and try again.\n\nDetails: ${e.message}`;
+  }
+
+  thinkingEl.remove();
+  addAssistantMessage(finalAnswer || 'No answer was returned.', errored, question);
+  if (!errored) conversationContext = `Q: ${question}\nA: ${(finalAnswer || '').slice(0, 300)}`;
+  sendBtn.disabled = false;
+  input.focus();
+}
+
+form.addEventListener('submit', e => {
+  e.preventDefault();
+  const q = input.value.trim();
+  if (q) askQuestion(q);
+});
+
+input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    form.requestSubmit();
+  }
+});
+
+input.addEventListener('input', () => {
+  input.style.height = 'auto';
+  input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+});
+// ---------- Voice input ----------
+const micBtn = document.getElementById('micBtn');
+let mediaRecorder = null;
+let audioChunks = [];
+let isRecording = false;
+
+function pickSupportedMimeType() {
+  const candidates = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+  for (const type of candidates) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported(type)) return type;
+  }
+  return '';
+}
+
+micBtn.addEventListener('click', async () => {
+  if (!isRecording) {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      uploadStatus.textContent = "Voice input isn't supported in this browser.";
+      uploadStatus.classList.add('error');
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = pickSupportedMimeType();
+      mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        transcribeRecording(mediaRecorder.mimeType || 'audio/webm');
+      };
+      mediaRecorder.start();
+      isRecording = true;
+      micBtn.classList.add('recording');
+      uploadStatus.textContent = '';
+      uploadStatus.classList.remove('error');
+    } catch (e) {
+      uploadStatus.textContent = `Couldn't access microphone: ${e.message}`;
+      uploadStatus.classList.add('error');
+    }
+  } else {
+    mediaRecorder.stop();
+    isRecording = false;
+    micBtn.classList.remove('recording');
+  }
+});
+
+async function transcribeRecording(mimeType) {
+  if (audioChunks.length === 0) return;
+  const blob = new Blob(audioChunks, { type: mimeType });
+  const ext = mimeType.includes('ogg') ? 'ogg' : mimeType.includes('mp4') ? 'm4a' : 'webm';
+
+  micBtn.classList.add('transcribing');
+  micBtn.disabled = true;
+
+  const formData = new FormData();
+  formData.append('audio', blob, `recording.${ext}`);
+
+  try {
+    const res = await fetch('/api/transcribe', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || 'Transcription failed.');
+    const existing = input.value.trim();
+    input.value = existing ? `${existing} ${data.text}` : data.text;
+    input.dispatchEvent(new Event('input'));
+    input.focus();
+  } catch (e) {
+    uploadStatus.textContent = `Couldn't transcribe: ${e.message}`;
+    uploadStatus.classList.add('error');
+  }
+
+  micBtn.classList.remove('transcribing');
+  micBtn.disabled = false;
+}
+
+document.querySelectorAll('.example-chip').forEach(chip => {
+  chip.addEventListener('click', () => askQuestion(chip.dataset.q));
+});
+
+refreshDocuments();
+</script>
+
+</body>
+</html>
